@@ -4,69 +4,34 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import bibliotecaG.data.local.GameDao
-import bibliotecaG.data.local.GameEntity
 import bibliotecaG.data.model.Game
+import bibliotecaG.data.repository.GameRepository // Importamos el Repositorio
 
-class GameViewModel(private val dao: GameDao) : ViewModel() {
+// 1. Cambiamos la dependencia de GameDao -> GameRepository
+class GameViewModel(private val repository: GameRepository) : ViewModel() {
 
-    val games: StateFlow<List<Game>> = dao.getAllGames()
-        .map { list ->
-            list.map { entity ->
-                Game(
-                    id = entity.id,
-                    title = entity.title,
-                    description = entity.description,
-                    tags = entity.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                    imageUrl = entity.imageUrl,
-                    externalLinks = entity.externalLinks?.split(",")?.map { it.trim() } ?: emptyList()
-                )
-            }
-        }
+    // 2. Obtenemos los juegos directamente del repositorio (ya están mapeados)
+    val games: StateFlow<List<Game>> = repository.games
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    // 3. Las funciones ahora solo llaman al repositorio.
+    //    ¡Ya no necesitan hacer el mapeo a GameEntity!
+
     fun addGame(game: Game) = viewModelScope.launch {
-        dao.insertGame(
-            GameEntity(
-                id = game.id,
-                title = game.title,
-                description = game.description,
-                tags = game.tags.joinToString(","),
-                imageUrl = game.imageUrl,
-                externalLinks = game.externalLinks.joinToString(",")
-            )
-        )
+        repository.addGame(game)
     }
 
     fun updateGame(game: Game) = viewModelScope.launch {
-        dao.updateGame(
-            GameEntity(
-                id = game.id,
-                title = game.title,
-                description = game.description,
-                tags = game.tags.joinToString(","),
-                imageUrl = game.imageUrl,
-                externalLinks = game.externalLinks.joinToString(",")
-            )
-        )
+        repository.updateGame(game)
     }
 
     fun deleteGame(game: Game) = viewModelScope.launch {
-        dao.deleteGame(
-            GameEntity(
-                id = game.id,
-                title = game.title,
-                description = game.description,
-                tags = game.tags.joinToString(","),
-                imageUrl = game.imageUrl,
-                externalLinks = game.externalLinks.joinToString(",")
-            )
-        )
+        repository.deleteGame(game)
     }
 
+    // La función de búsqueda sigue igual, ya que opera sobre la lista de 'Game'
     fun search(query: String): List<Game> {
         return games.value.filter {
             it.title.contains(query, true) ||
