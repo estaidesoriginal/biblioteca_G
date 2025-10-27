@@ -1,0 +1,40 @@
+# =========================================================================
+# === Archivos de Build (generados por Android Studio/Gradle)
+# =========================================================================
+/build/
+/app/build/
+/captures/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.iml
+
+# =========================================================================
+# === Archivos locales (Información sensible o específica del entorno)
+# =========================================================================
+# No subas tu configuración local, claves de API, o propiedades del SDK
+local.properties
+.idea/secrets/
+# Archivos de keystore (firmas de la app)
+*.jks
+*.keystore
+
+# =========================================================================
+# === Archivos del IDE (Android Studio / IntelliJ)
+# =========================================================================
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+.idea/modules.xml
+.idea/assetWizardSettings.xml
+.idea/libraries/
+.idea/navEditor.xml
+.idea/vcs.xml
+*.iws
+
+# =========================================================================
+# === Archivos del sistema operativo y otros
+# =========================================================================
+.DS_Store
+Thumbs.db
