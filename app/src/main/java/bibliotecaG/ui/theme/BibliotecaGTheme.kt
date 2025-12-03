@@ -1,55 +1,51 @@
 package bibliotecaG.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val DarkBackground = Color(0xFF1A1A2E) // Un azul casi negro
-private val DarkSurface = Color(0xFF1F2833)    // Un gris azulado oscuro
-private val NeonPink = Color(0xFFFF00FF)      // Rosa neón brillante
-private val LightText = Color(0xFFE0E0E0)      // Texto claro (casi blanco)
-private val PrimaryPurple = Color(0xFF9370DB) // Morado medio
-private val DarkText = Color(0xFF333333)      // Texto oscuro para modo claro
+// --- DEFINICIÓN DE COMBOS DE COLOR ---
 
-// Paleta de día (Ejemplo)
-private val LightBackground = Color(0xFFF5F7FA)
-private val WhiteSurface = Color(0xFFFFFFFF)
-private val PrimaryBlue = Color(0xFF007BFF)
-
-private val DarkColors = darkColorScheme(
-    primary = NeonPink,
-    onPrimary = Color.Black,
-    secondary = PrimaryPurple,
-    onSecondary = Color.White,
-    background = DarkBackground,
-    onBackground = LightText,
-    surface = DarkSurface,
-    onSurface = LightText,
-    error = Color(0xFFCF6679)
-)
-
-private val LightColors = lightColorScheme(
-    primary = PrimaryBlue,
+// 1. Default (Azul)
+private val DefaultColors = lightColorScheme(
+    primary = Color(0xFF2196F3),
     onPrimary = Color.White,
-    secondary = PrimaryPurple,
-    onSecondary = Color.White,
-    background = LightBackground,
-    onBackground = DarkText,
-    surface = WhiteSurface,
-    onSurface = DarkText,
-    error = Color(0xFFB00020)
+    secondary = Color(0xFF03DAC6),
+    background = Color(0xFFFAFAFA),
+    surface = Color.White
 )
 
+// 2. Nature (Verde/Tierra)
+private val NatureColors = lightColorScheme(
+    primary = Color(0xFF4CAF50),
+    onPrimary = Color.White,
+    secondary = Color(0xFF8D6E63),
+    background = Color(0xFFF1F8E9),
+    surface = Color(0xFFDCEDC8)
+)
+
+// 3. Cyber (Oscuro/Neón)
+private val CyberColors = lightColorScheme(
+    primary = Color(0xFFFF00FF), // Magenta Neón
+    onPrimary = Color(0xFF121212),
+    secondary = Color(0xFF2FFF00), // Cyan
+    background = Color(0x90121212), // Negro fondo
+    surface = Color(0xFF1E1E1E), // Gris oscuro cards
+    onSurface = Color(0xFF00F2FF)
+)
 
 @Composable
 fun BibliotecaGTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeType: ThemeType = ThemeType.DEFAULT, // Recibe el tipo de tema
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) DarkColors else LightColors
+    // Seleccionamos la paleta según el enum
+    val colors = when (themeType) {
+        ThemeType.DEFAULT -> DefaultColors
+        ThemeType.NATURE -> NatureColors
+        ThemeType.CYBER -> CyberColors
+    }
 
     MaterialTheme(
         colorScheme = colors,

@@ -2,10 +2,13 @@ package bibliotecaG.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,11 +36,27 @@ fun GameCard(game: Game, onClick: () -> Unit) {
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = game.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                // Fila para el título y la estrella
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = game.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    // --- INDICADOR VISUAL (Estrella) ---
+                    // Si protectionStatusId es 1, es protegido (Admin)
+                    if (game.protectionStatusId == 1) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Juego Protegido",
+                            tint = Color(0xFFFFD700), // Color Dorado
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
                 Text(
                     text = game.description,
                     maxLines = 2,

@@ -6,10 +6,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -23,13 +26,16 @@ import coil.compose.rememberAsyncImagePainter
 fun GameDetailScreen(
     game: Game,
     onBack: () -> Unit,
-    onEdit: (Game) -> Unit,
+    onEdit: () -> Unit, // Ya no recibe Game, solo navega
     onDelete: (Game) -> Unit,
+    // ¡NUEVO PARÁMETRO! Acción específica para cambiar el estado sin salir de la pantalla
+    onStatusChange: (Game) -> Unit,
     currentUserRole: String?
 ) {
     val scrollState = rememberScrollState()
     val uriHandler = LocalUriHandler.current
-    val isGameProtected = (game.creatorRole == "ADMIN")
+
+    val isGameProtected = (game.protectionStatusId == 1)
     val isUserAdmin = (currentUserRole == "ADMIN")
     val canModify = !isGameProtected || isUserAdmin
 
@@ -48,24 +54,54 @@ fun GameDetailScreen(
             )
         },
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = { onEdit(game) },
-                    enabled = canModify
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text("Editar")
+                    Button(
+                        onClick = onEdit, // Solo navega
+                        enabled = canModify
+                    ) {
+                        Text("Editar")
+                    }
+                    Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        onClick = { onDelete(game) },
+                        enabled = canModify
+                    ) {
+                        Text("Eliminar")
+                    }
                 }
-                Button(
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    onClick = { onDelete(game) },
-                    enabled = canModify
-                ) {
-                    Text("Eliminar")
+
+                if (isUserAdmin) {
+                    Divider()
+                    Button(
+                        onClick = {
+                            val newStatus = if (isGameProtected) 2 else 1
+                            val updatedGame = game.copy(protectionStatusId = newStatus)
+
+                            // ¡CORRECCIÓN! Usamos la nueva función dedicada
+                            // Esto llamará directamente a la API en el ViewModel
+                            onStatusChange(updatedGame)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isGameProtected) Color(0xFFFFA726) else Color(0xFF66BB6A)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isGameProtected) Icons.Default.LockOpen else Icons.Default.Lock,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isGameProtected) "Desproteger Juego (Hacer Público)" else "Proteger Juego (Solo Admin)")
+                    }
                 }
             }
         }
@@ -89,7 +125,6 @@ fun GameDetailScreen(
                 )
             }
 
-            // Título
             Text(
                 text = game.title,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
@@ -97,9 +132,18 @@ fun GameDetailScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            val protectionText = if (isGameProtected) "PROTEGIDO (Solo Admins)" else "PÚBLICO"
+            val protectionColor = if (isGameProtected) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant
+
+            Text(
+                text = "Estado: $protectionText",
+                style = MaterialTheme.typography.labelMedium,
+                color = protectionColor,
+                fontWeight = FontWeight.Bold
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Descripción
             Text(
                 text = game.description,
                 style = MaterialTheme.typography.bodyLarge,
@@ -108,7 +152,6 @@ fun GameDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Etiquetas
             if (game.tags.isNotEmpty()) {
                 Text(
                     text = "Etiquetas:",
@@ -130,7 +173,6 @@ fun GameDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Enlaces externos
             if (game.externalLinks.isNotEmpty()) {
                 Text(
                     text = "Enlaces relacionados:",

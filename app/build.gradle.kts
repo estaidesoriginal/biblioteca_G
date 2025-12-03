@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -56,6 +57,16 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
+    // --- Networking (Internet) ---
+    // Retrofit: Para hacer las llamadas a la API
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Gson Converter: Para traducir JSON a Kotlin
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // (Opcional) OkHttp Logging: Para ver en la consola qué datos se envían
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     implementation("androidx.navigation:navigation-compose:2.8.0")
 

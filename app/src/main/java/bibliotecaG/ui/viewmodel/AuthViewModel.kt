@@ -1,33 +1,87 @@
 package bibliotecaG.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import bibliotecaG.data.model.LoginRequest
+import bibliotecaG.data.model.RegisterRequest
+import bibliotecaG.data.model.User
+import bibliotecaG.data.remote.GameApiService
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(private val api: GameApiService) : ViewModel() {
 
-    private val _currentUserRole = MutableStateFlow<String?>(null)
-    val currentUserRole = _currentUserRole.asStateFlow()
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser = _currentUser.asStateFlow()
 
-    // Credenciales "forzadas"
-    private val adminCredentials = mapOf(
-        "admin@gmail.com" to "Password"
-    )
-    private val userCredentials = mapOf(
-        "usuario@gmail.com" to "Password"
-    )
-    fun login(email: String, pass: String): Boolean {
-        if (adminCredentials[email] == pass) {
-            _currentUserRole.value = "ADMIN"
-            return true
+    // --- CORRECCIÓN CRÍTICA ---
+    // Antes era: val currentUserRole: String? get() = ... (Esto causaba el error)
+    // Ahora es: Un StateFlow que observa a 'currentUser' y extrae el rol automáticamente.
+    // Esto permite usar .collectAsState() en la UI sin errores.
+    val currentUserRole: StateFlow<String?> = _currentUser
+        .map { user -> user?.role } // Si hay usuario, extrae el rol. Si no, devuelve null.
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = null
+        )
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+
+    fun login(email: String, pass: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val response = api.login(LoginRequest(email, pass))
+                if (response.isSuccessful && response.body() != null) {
+                    _currentUser.value = response.body()!!.user
+                    onSuccess()
+                } else {
+                    _error.value = "Credenciales inválidas"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error de conexión: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
         }
-        if (userCredentials[email] == pass) {
-            _currentUserRole.value = "USER"
-            return true
-        }
-        return false
     }
+
+    fun register(name: String, email: String, pass: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val response = api.register(RegisterRequest(name, email, pass))
+                if (response.isSuccessful && response.body() != null) {
+                    _currentUser.value = response.body()!!.user
+                    onSuccess()
+                } else {
+                    _error.value = "Error en el registro"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error de conexión: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun logout() {
-        _currentUserRole.value = null
+        _currentUser.value = null
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 }

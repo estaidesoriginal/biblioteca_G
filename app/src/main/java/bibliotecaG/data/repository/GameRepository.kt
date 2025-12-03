@@ -1,70 +1,75 @@
 package bibliotecaG.data.repository
 
-import bibliotecaG.data.local.GameDao
-import bibliotecaG.data.local.GameEntity
 import bibliotecaG.data.model.Game
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import bibliotecaG.data.remote.GameApiService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-/** Profeee atencion aqui lea esta plana junto con sus anotaciones, es por el comentario de la clase pasada : "donde esta la id de cada juego"
- Repositorio maneja la logica de datos
- es la unica funte de verdad para /viewmodel/
- recibe el Dao para acceder a la base de datos
- */
-class GameRepository(private val gameDao: GameDao) {
+class GameRepository(private val api: GameApiService) {
+
+    // Lista en memoria (Source of Truth para la UI)
+    private val _games = MutableStateFlow<List<Game>>(emptyList())
+    val games: StateFlow<List<Game>> = _games.asStateFlow()
+
+    // Manejo de errores
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    // Estado de carga (útil para mostrar una barra de progreso)
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     /**
-     Obtiene todos los juegos de Room (GameEntity) y los mapea a
-     objetos del modelo de dominio (/model/Game) para que UI  los consuma
+     * Descarga los juegos desde la API
      */
-    val games: Flow<List<Game>> = gameDao.getAllGames()
-        .map { entityList ->
-            entityList.map { entity ->
-                // Mapeo de Entity
-                Game(
-                    id = entity.id,
-                    title = entity.title,
-                    description = entity.description,
-                    tags = entity.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                    imageUrl = entity.imageUrl,
-                    externalLinks = entity.externalLinks?.split(",")?.map { it.trim() } ?: emptyList(),
-                    creatorRole = entity.creatorRole
-                )
-            }
+    suspend fun fetchGames() {
+        _isLoading.value = true
+        try {
+            val remoteGames = api.getAllGames()
+            _games.value = remoteGames
+            _error.value = null
+        } catch (e: Exception) {
+            _error.value = "Error al cargar: ${e.message}"
+            e.printStackTrace()
+        } finally {
+            _isLoading.value = false
         }
+    }
 
-    /**
-      Mapea un Game (Model) a un GameEntity y lo inserta en Room
-     */
     suspend fun addGame(game: Game) {
-        gameDao.insertGame(game.toEntity())
+        _isLoading.value = true
+        try {
+            api.createGame(game)
+            fetchGames() // Refrescamos la lista completa tras crear
+        } catch (e: Exception) {
+            _error.value = "Error al crear: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
     }
 
-    /**
-      Mapea un Game (Model) a un GameEntity y lo actualiza en Room
-     */
     suspend fun updateGame(game: Game) {
-        gameDao.updateGame(game.toEntity())
+        _isLoading.value = true
+        try {
+            api.updateGame(game.id, game)
+            fetchGames()
+        } catch (e: Exception) {
+            _error.value = "Error al actualizar: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
     }
 
-    /**
-      Mapea un Game (Model) a un GameEntity y lo elimina de Room
-     */
     suspend fun deleteGame(game: Game) {
-        gameDao.deleteGame(game.toEntity())
-    }
-
-    /**
-      Función helper para convertir Model -> Entity
-     */
-    private fun Game.toEntity(): GameEntity {
-        return GameEntity(
-            id = this.id,
-            title = this.title,
-            description = this.description,
-            tags = this.tags.joinToString(","),
-            imageUrl = this.imageUrl,
-            externalLinks = this.externalLinks.joinToString(","),
-            creatorRole = this.creatorRole // <-- ¡AÑADIDO!
-        )
+        _isLoading.value = true
+        try {
+            api.deleteGame(game.id)
+            fetchGames()
+        } catch (e: Exception) {
+            _error.value = "Error al borrar: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
     }
 }
