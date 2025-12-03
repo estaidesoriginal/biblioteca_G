@@ -9,7 +9,6 @@ data class Product(
     val description: String,
     val price: Double,
     val category: String,
-    // Usamos @SerializedName para leer el JSON de la API (snake_case)
     @SerializedName("image_url")
     val imageUrl: String? = null,
     val stock: Int = 0

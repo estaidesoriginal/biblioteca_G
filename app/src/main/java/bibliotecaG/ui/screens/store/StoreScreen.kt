@@ -23,7 +23,7 @@ import androidx.navigation.NavController
 import bibliotecaG.data.model.Product
 import bibliotecaG.ui.viewmodel.AuthViewModel
 import bibliotecaG.ui.viewmodel.StoreViewModel
-import coil.compose.AsyncImage // Importante para cargar imágenes
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,14 +104,12 @@ fun ProductCard(
 ) {
     Card(elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
-
-            // --- CORRECCIÓN: IMAGEN DEL PRODUCTO ---
             AsyncImage(
                 model = product.imageUrl ?: "https://via.placeholder.com/150",
                 contentDescription = product.name,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp) // Altura fija para uniformidad
+                    .height(180.dp)
                     .padding(bottom = 12.dp),
                 contentScale = ContentScale.Crop
             )

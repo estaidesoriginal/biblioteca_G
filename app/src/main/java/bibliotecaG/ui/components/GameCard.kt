@@ -36,7 +36,6 @@ fun GameCard(game: Game, onClick: () -> Unit) {
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.weight(1f)) {
-                // Fila para el título y la estrella
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = game.title,
@@ -44,8 +43,6 @@ fun GameCard(game: Game, onClick: () -> Unit) {
                         fontWeight = FontWeight.Bold
                     )
 
-                    // --- INDICADOR VISUAL (Estrella) ---
-                    // Si protectionStatusId es 1, es protegido (Admin)
                     if (game.protectionStatusId == 1) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(

@@ -1,4 +1,4 @@
-package com.example.bibliotecag_sdapp
+package bibliotecaG
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,7 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import bibliotecaG.data.model.User
 import bibliotecaG.data.remote.RetrofitClient
-import bibliotecaG.data.repository.AdminRepository // Nuevo
+import bibliotecaG.data.repository.AdminRepository
 import bibliotecaG.data.repository.GameRepository
 import bibliotecaG.data.repository.StoreRepository
 import bibliotecaG.ui.components.BottomNavigationBar
@@ -33,7 +33,7 @@ import bibliotecaG.ui.screens.store.AddProductScreen
 import bibliotecaG.ui.screens.store.StoreScreen
 import bibliotecaG.ui.theme.BibliotecaGTheme
 import bibliotecaG.ui.theme.ThemeType
-import bibliotecaG.ui.viewmodel.AdminViewModel // Nuevo
+import bibliotecaG.ui.viewmodel.AdminViewModel
 import bibliotecaG.ui.viewmodel.AuthViewModel
 import bibliotecaG.ui.viewmodel.GameViewModel
 import bibliotecaG.ui.viewmodel.StoreViewModel
@@ -48,7 +48,6 @@ class MainActivity : ComponentActivity() {
         StoreRepository(RetrofitClient.apiService)
     }
 
-    // Nuevo Repositorio para Admin
     private val adminRepository by lazy {
         AdminRepository(RetrofitClient.apiService)
     }
@@ -84,7 +83,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Nueva Factory para AdminViewModel
     private val adminViewModelFactory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AdminViewModel::class.java)) {
@@ -98,7 +96,6 @@ class MainActivity : ComponentActivity() {
     private val gameViewModel: GameViewModel by viewModels { gameViewModelFactory }
     private val storeViewModel: StoreViewModel by viewModels { storeViewModelFactory }
     private val authViewModel: AuthViewModel by viewModels { authViewModelFactory }
-    // Nuevo ViewModel
     private val adminViewModel: AdminViewModel by viewModels { adminViewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,11 +144,11 @@ class MainActivity : ComponentActivity() {
                                 CartScreen(navController, storeViewModel, authViewModel)
                             }
 
-                            // Pasamos el AdminViewModel aquí
                             composable("admin_panel") {
                                 AdminPanelScreen(navController, adminViewModel)
                             }
 
+                            // --- PERFIL (Con botón dinámico) ---
                             composable("profile") {
                                 ProfileScreen(
                                     authViewModel = authViewModel,
@@ -159,20 +156,16 @@ class MainActivity : ComponentActivity() {
                                     onThemeChange = { newTheme -> currentTheme = newTheme },
                                     onLogout = {
                                         authViewModel.logout()
-                                        // CORRECCIÓN CRASH: Usamos popUpTo(0) para limpiar toda la pila de forma segura
-                                        navController.navigate("login") {
-                                            popUpTo(0) { inclusive = true }
-                                        }
+                                    },
+                                    onLoginRequest = {
+                                        navController.navigate("login")
                                     }
                                 )
                             }
-
-                            // --- VISTAS SECUNDARIAS ---
                             composable("login") {
                                 LoginScreen(
                                     authViewModel = authViewModel,
                                     onLoginSuccess = {
-                                        // CORRECCIÓN FLUJO: Navegar explícitamente a Home al loguearse
                                         navController.navigate("home") {
                                             popUpTo("login") { inclusive = true }
                                         }
@@ -180,7 +173,6 @@ class MainActivity : ComponentActivity() {
                                     onBack = { navController.popBackStack() }
                                 )
                             }
-
                             composable("addGame") {
                                 AddGameScreen(
                                     gameToEdit = null,
@@ -194,7 +186,6 @@ class MainActivity : ComponentActivity() {
                                     onBack = { navController.popBackStack() }
                                 )
                             }
-
                             composable("editGame/{gameId}") { backStackEntry ->
                                 val gameId = backStackEntry.arguments?.getString("gameId")
                                 val games by gameViewModel.games.collectAsState()
@@ -217,7 +208,6 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
-
                             composable("detail/{gameId}") { backStackEntry ->
                                 val gameId = backStackEntry.arguments?.getString("gameId")
                                 val games by gameViewModel.games.collectAsState()
@@ -239,7 +229,6 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
-
                             composable("addProduct") {
                                 AddProductScreen(
                                     onSave = { product ->
@@ -249,7 +238,6 @@ class MainActivity : ComponentActivity() {
                                     onBack = { navController.popBackStack() }
                                 )
                             }
-
                             composable("editProduct/{productId}") { backStackEntry ->
                                 val productId = backStackEntry.arguments?.getString("productId")
                                 val products by storeViewModel.products.collectAsState()

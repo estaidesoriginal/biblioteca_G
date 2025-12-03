@@ -37,18 +37,15 @@ class StoreViewModel(private val repository: StoreRepository) : ViewModel() {
         repository.deleteProduct(product.id)
     }
 
-    // --- ACCIONES DE CARRITO ---
     fun addToCart(product: Product) = repository.addToCart(product)
     fun removeFromCart(product: Product) = repository.removeFromCart(product)
     fun increaseQty(product: Product) = repository.updateQuantity(product, true)
     fun decreaseQty(product: Product) = repository.updateQuantity(product, false)
     fun getTotal() = repository.getCartTotal()
 
-    // --- CORRECCIÓN: Ahora recibe userId ---
     fun confirmPurchase(userId: String) = viewModelScope.launch {
         _lastPurchaseTotal.value = getTotal()
 
-        // Pasamos el userId al repositorio
         val success = repository.sendPurchase(userId)
 
         if (success) {

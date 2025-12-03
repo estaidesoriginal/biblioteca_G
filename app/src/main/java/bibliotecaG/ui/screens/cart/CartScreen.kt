@@ -38,13 +38,11 @@ fun CartScreen(
 
     var showPaymentDialog by remember { mutableStateOf(false) }
 
-    // --- USUARIO NO AUTENTICADO ---
     if (currentUser == null) {
         GuestCartView(onLoginClick = { navController.navigate("login") })
         return
     }
 
-    // --- CARRITO VACÍO ---
     if (cartItems.isEmpty() && purchaseSuccessId == null) {
         EmptyCartView(onGoToStore = { navController.navigate("store") })
         return
@@ -80,16 +78,12 @@ fun CartScreen(
             }
         }
     }
-
-    // --- DIALOGO DE PAGO ---
     if (showPaymentDialog) {
         PaymentDialog(
             total = storeViewModel.getTotal(),
             onDismiss = { showPaymentDialog = false },
             onConfirm = {
                 showPaymentDialog = false
-
-                // 🔥 INTEGRACIÓN DEL CÓDIGO PEQUEÑO (funciona la compra)
                 currentUser?.id?.let { uid ->
                     storeViewModel.confirmPurchase(uid)
                 }
@@ -97,7 +91,6 @@ fun CartScreen(
         )
     }
 
-    // --- DIALOGO DE COMPRA EXITOSA ---
     purchaseSuccessId?.let { orderId ->
         SuccessDialog(
             orderId = orderId,
@@ -106,10 +99,6 @@ fun CartScreen(
         )
     }
 }
-
-// =========================================================
-//   COMPONENTES VISUALES
-// =========================================================
 
 @Composable
 fun GuestCartView(onLoginClick: () -> Unit) {
@@ -194,14 +183,10 @@ fun CartSummaryBar(total: Double, onCheckoutClick: () -> Unit) {
     }
 }
 
-// =========================================================
-//   DIALOGOS Y PAGO
-// =========================================================
-
 @Composable
 fun PaymentDialog(total: Double, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 
-    var selectedOption by remember { mutableStateOf(1) }  // 1=tarjeta, 2=transferencia
+    var selectedOption by remember { mutableStateOf(1) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -212,7 +197,6 @@ fun PaymentDialog(total: Double, onDismiss: () -> Unit, onConfirm: () -> Unit) {
                 Text("Seleccione su método de pago:")
                 Spacer(Modifier.height(8.dp))
 
-                // TARJETA
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().clickable { selectedOption = 1 }
@@ -221,7 +205,6 @@ fun PaymentDialog(total: Double, onDismiss: () -> Unit, onConfirm: () -> Unit) {
                     Text("Tarjeta de Crédito/Débito")
                 }
 
-                // TRANSFERENCIA
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().clickable { selectedOption = 2 }

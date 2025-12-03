@@ -26,9 +26,8 @@ import coil.compose.rememberAsyncImagePainter
 fun GameDetailScreen(
     game: Game,
     onBack: () -> Unit,
-    onEdit: () -> Unit, // Ya no recibe Game, solo navega
+    onEdit: () -> Unit,
     onDelete: (Game) -> Unit,
-    // ¡NUEVO PARÁMETRO! Acción específica para cambiar el estado sin salir de la pantalla
     onStatusChange: (Game) -> Unit,
     currentUserRole: String?
 ) {
@@ -62,7 +61,7 @@ fun GameDetailScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
-                        onClick = onEdit, // Solo navega
+                        onClick = onEdit,
                         enabled = canModify
                     ) {
                         Text("Editar")
@@ -82,9 +81,6 @@ fun GameDetailScreen(
                         onClick = {
                             val newStatus = if (isGameProtected) 2 else 1
                             val updatedGame = game.copy(protectionStatusId = newStatus)
-
-                            // ¡CORRECCIÓN! Usamos la nueva función dedicada
-                            // Esto llamará directamente a la API en el ViewModel
                             onStatusChange(updatedGame)
                         },
                         modifier = Modifier

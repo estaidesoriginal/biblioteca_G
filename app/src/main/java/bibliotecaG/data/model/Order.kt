@@ -4,6 +4,8 @@ data class Order(
     val id: String,
     val userId: String,
     val total: Double,
-    val status: String, // "pendiente", "pagado", "cancelado"
-    val createdAt: String? = null
+    val status: String,
+    val createdAt: String? = null,
+
+    val items: List<OrderItem> = emptyList()
 )

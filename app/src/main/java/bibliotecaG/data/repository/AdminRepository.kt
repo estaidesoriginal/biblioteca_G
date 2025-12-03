@@ -16,8 +16,7 @@ class AdminRepository(private val api: GameApiService) {
     suspend fun fetchOrders() {
         try {
             val remoteOrders = api.getAllOrders()
-            // Ordenamos por estado para ver pendientes primero (opcional)
-            _orders.value = remoteOrders.sortedByDescending { it.id }
+            _orders.value = remoteOrders
         } catch (e: Exception) {
             _error.value = "Error al cargar órdenes: ${e.localizedMessage}"
         }
@@ -25,10 +24,12 @@ class AdminRepository(private val api: GameApiService) {
 
     suspend fun updateOrderStatus(orderId: String, newStatus: String) {
         try {
+
             val body = mapOf("status" to newStatus)
+
             val response = api.updateOrderStatus(orderId, body)
             if (response.isSuccessful) {
-                fetchOrders() // Recargamos la lista para ver el cambio
+                fetchOrders()
             } else {
                 _error.value = "Error al actualizar: ${response.code()}"
             }

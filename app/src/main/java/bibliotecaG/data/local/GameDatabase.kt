@@ -12,8 +12,6 @@ abstract class GameDatabase : RoomDatabase() {
     companion object {
         val MIGRATION_1_2: Migration = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // nueva columna 'creatorRole' de tipo TEXT,
-                // no puede ser null, valor por defecto es "USER".
                 db.execSQL(
                     "ALTER TABLE games ADD COLUMN creatorRole TEXT NOT NULL DEFAULT 'USER'"
                 )

@@ -12,7 +12,6 @@ sealed class BottomNavItem(val route: String, val title: String, val icon: Image
     object Library : BottomNavItem("home", "Biblioteca", Icons.Default.Book)
     object Store : BottomNavItem("store", "Tienda", Icons.Default.ShoppingBag)
     object Cart : BottomNavItem("cart", "Carrito", Icons.Default.ShoppingCart)
-    // Agregamos el item de Perfil
     object Profile : BottomNavItem("profile", "Perfil", Icons.Default.Person)
     object Admin : BottomNavItem("admin_panel", "Admin", Icons.Default.AdminPanelSettings)
 }

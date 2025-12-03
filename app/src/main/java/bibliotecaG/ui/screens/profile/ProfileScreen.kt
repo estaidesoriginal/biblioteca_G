@@ -1,7 +1,6 @@
 package bibliotecaG.ui.screens.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -22,14 +21,15 @@ fun ProfileScreen(
     authViewModel: AuthViewModel,
     currentTheme: ThemeType,
     onThemeChange: (ThemeType) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onLoginRequest: () -> Unit
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // Estados para edición (simulado por ahora)
-    var name by remember { mutableStateOf(currentUser?.name ?: "") }
-    var email by remember { mutableStateOf(currentUser?.email ?: "") }
-    var isEditing by remember { mutableStateOf(false) }
+    val isLoggedIn = currentUser != null
+    val displayName = currentUser?.name ?: "Invitado"
+    val displayEmail = currentUser?.email ?: "No has iniciado sesión"
+    val displayRole = currentUser?.role ?: "Visitante"
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Mi Perfil") }) }
@@ -48,29 +48,41 @@ fun ProfileScreen(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(
+                        if (isLoggedIn) MaterialTheme.colorScheme.primaryContainer
+                        else Color.Gray.copy(alpha = 0.3f)
+                    )
                     .padding(16.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer else Color.Gray
             )
 
             Spacer(Modifier.height(24.dp))
 
-            // Datos del Usuario
+            if (isLoggedIn) {
+                Text(
+                    text = "Rol: $displayRole",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // Datos del Usuario (SOLO LECTURA)
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
+                value = displayName,
+                onValueChange = { }, // No permite cambios
                 label = { Text("Nombre") },
-                enabled = isEditing,
+                readOnly = true, // El cursor aparece pero no el teclado
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = displayEmail,
+                onValueChange = { },
                 label = { Text("Email") },
-                enabled = false, // El email suele ser inmutable o requiere validación extra
+                readOnly = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -88,13 +100,22 @@ fun ProfileScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // Botón Cerrar Sesión
-            Button(
-                onClick = onLogout,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cerrar Sesión")
+            // BOTÓN DINÁMICO
+            if (isLoggedIn) {
+                Button(
+                    onClick = onLogout,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cerrar Sesión")
+                }
+            } else {
+                Button(
+                    onClick = onLoginRequest,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Iniciar Sesión / Registrarse")
+                }
             }
         }
     }

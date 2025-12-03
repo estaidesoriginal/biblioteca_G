@@ -19,12 +19,8 @@ class AuthViewModel(private val api: GameApiService) : ViewModel() {
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser = _currentUser.asStateFlow()
 
-    // --- CORRECCIÓN CRÍTICA ---
-    // Antes era: val currentUserRole: String? get() = ... (Esto causaba el error)
-    // Ahora es: Un StateFlow que observa a 'currentUser' y extrae el rol automáticamente.
-    // Esto permite usar .collectAsState() en la UI sin errores.
     val currentUserRole: StateFlow<String?> = _currentUser
-        .map { user -> user?.role } // Si hay usuario, extrae el rol. Si no, devuelve null.
+        .map { user -> user?.role }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,

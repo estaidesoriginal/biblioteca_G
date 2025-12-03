@@ -13,9 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import bibliotecaG.ui.components.GameCard
-import bibliotecaG.ui.viewmodel.GameViewModel
-import androidx.compose.ui.text.font.FontWeight
 import bibliotecaG.ui.viewmodel.AuthViewModel
+import bibliotecaG.ui.viewmodel.GameViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,33 +25,12 @@ fun HomeScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val games by gameViewModel.games.collectAsState()
-
-    val currentUserRole by authViewModel.currentUserRole.collectAsState()
-
     val shown = if (searchQuery.isBlank()) games else gameViewModel.search(searchQuery)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("La Biblioteca de Juegos") },
-
-                actions = {
-                    if (currentUserRole == null) {
-
-                        TextButton(onClick = { navController.navigate("login") }) {
-                            Text("Iniciar Sesión")
-                        }
-                    } else {
-
-                        TextButton(onClick = { authViewModel.logout() }) {
-                            Text(
-                                text = if (currentUserRole == "ADMIN") "Admin" else "Usuario",
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
+                title = { Text("Mi Biblioteca de Juegos") }
             )
         },
         floatingActionButton = {

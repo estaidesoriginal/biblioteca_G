@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-// Eliminamos las importaciones de iconos que daban error (Visibility)
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,20 +24,15 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onBack: () -> Unit
 ) {
-    // Estado para alternar entre Login y Registro
     var isRegistering by remember { mutableStateOf(false) }
-
-    // Estados del formulario
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Observamos estados del ViewModel (Carga y Errores)
     val isLoading by authViewModel.isLoading.collectAsState()
     val error by authViewModel.error.collectAsState()
 
-    // Limpiamos errores al cambiar de modo (de Login a Registro o viceversa)
     LaunchedEffect(isRegistering) {
         authViewModel.clearError()
     }
@@ -71,24 +65,22 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = if (isRegistering) "Únete a la Biblioteca" else "Bienvenido de nuevo",
+                    text = if (isRegistering) "Únete a la Biblioteca_G" else "Bienvenido de nuevo",
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center
                 )
 
-                // Campo Nombre (Solo visible si estamos REGISTRANDO)
                 if (isRegistering) {
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre Completo") },
+                        label = { Text("Nombre de Usuario") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                     )
                 }
 
-                // Campo Email
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -101,7 +93,6 @@ fun LoginScreen(
                     )
                 )
 
-                // Campo Contraseña
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -114,8 +105,6 @@ fun LoginScreen(
                         imeAction = ImeAction.Done
                     ),
                     trailingIcon = {
-                        // CORRECCIÓN: Usamos un texto simple en lugar de los iconos que faltan
-                        // Esto evita el error de "Unresolved reference 'Visibility'"
                         Text(
                             text = if (passwordVisible) "Ocultar" else "Ver",
                             modifier = Modifier
@@ -127,7 +116,6 @@ fun LoginScreen(
                     }
                 )
 
-                // Mensaje de Error (si existe)
                 error?.let {
                     Text(
                         text = it,
@@ -139,7 +127,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Botón Principal (Login o Registro)
                 Button(
                     onClick = {
                         if (isRegistering) {
@@ -153,7 +140,7 @@ fun LoginScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading // Deshabilitar si está cargando
+                    enabled = !isLoading
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
@@ -165,7 +152,6 @@ fun LoginScreen(
                     }
                 }
 
-                // Botón para cambiar entre modos
                 TextButton(onClick = { isRegistering = !isRegistering }) {
                     Text(
                         text = if (isRegistering)

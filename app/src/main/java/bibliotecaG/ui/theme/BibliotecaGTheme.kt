@@ -5,8 +5,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// --- DEFINICIÓN DE COMBOS DE COLOR ---
-
 // 1. Default (Azul)
 private val DefaultColors = lightColorScheme(
     primary = Color(0xFF2196F3),
@@ -27,20 +25,19 @@ private val NatureColors = lightColorScheme(
 
 // 3. Cyber (Oscuro/Neón)
 private val CyberColors = lightColorScheme(
-    primary = Color(0xFFFF00FF), // Magenta Neón
-    onPrimary = Color(0xFF121212),
-    secondary = Color(0xFF2FFF00), // Cyan
-    background = Color(0x90121212), // Negro fondo
-    surface = Color(0xFF1E1E1E), // Gris oscuro cards
-    onSurface = Color(0xFF00F2FF)
+    primary = Color(0xFF2FFF00),
+    onPrimary = Color(0xFFFF00FF),
+    secondary = Color(0xFF2FFF00),
+    background = Color(0x90121212),
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color(0xFFFF00FF)
 )
 
 @Composable
 fun BibliotecaGTheme(
-    themeType: ThemeType = ThemeType.DEFAULT, // Recibe el tipo de tema
+    themeType: ThemeType = ThemeType.DEFAULT,
     content: @Composable () -> Unit
 ) {
-    // Seleccionamos la paleta según el enum
     val colors = when (themeType) {
         ThemeType.DEFAULT -> DefaultColors
         ThemeType.NATURE -> NatureColors

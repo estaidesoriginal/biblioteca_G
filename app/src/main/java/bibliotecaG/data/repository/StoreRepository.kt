@@ -28,9 +28,6 @@ class StoreRepository(private val api: GameApiService) {
             _error.value = "Error al cargar productos: ${e.localizedMessage}"
         }
     }
-
-    // --- ADMINISTRACIÓN DE PRODUCTOS ---
-
     suspend fun createProduct(product: Product) {
         try {
             api.createProduct(product)
@@ -57,25 +54,19 @@ class StoreRepository(private val api: GameApiService) {
             _error.value = "Error al eliminar: ${e.localizedMessage}"
         }
     }
-
-    // --- LÓGICA DEL CARRITO CON VALIDACIÓN DE STOCK ---
-
     fun addToCart(product: Product) {
         _cart.update { currentItems ->
             val existing = currentItems.find { it.product.id == product.id }
 
             if (existing != null) {
-                // CORRECCIÓN: Verificar Stock antes de sumar
                 if (existing.quantity < product.stock) {
                     currentItems.map {
                         if (it.product.id == product.id) it.copy(quantity = it.quantity + 1) else it
                     }
                 } else {
-                    // No hacemos nada si ya alcanzamos el máximo (o podríamos mostrar error)
                     currentItems
                 }
             } else {
-                // Verificar que haya al menos 1 en stock para agregar
                 if (product.stock > 0) {
                     currentItems + CartItem(product, 1)
                 } else {
@@ -94,14 +85,12 @@ class StoreRepository(private val api: GameApiService) {
             currentItems.map { item ->
                 if (item.product.id == product.id) {
                     if (increase) {
-                        // CORRECCIÓN: Verificar Stock antes de aumentar
                         if (item.quantity < product.stock) {
                             item.copy(quantity = item.quantity + 1)
                         } else {
-                            item // No aumenta si no hay stock
+                            item
                         }
                     } else {
-                        // Disminuir (mínimo 1)
                         val newQty = item.quantity - 1
                         item.copy(quantity = newQty.coerceAtLeast(1))
                     }

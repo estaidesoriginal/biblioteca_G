@@ -12,15 +12,14 @@ fun BottomNavigationBar(
     navController: NavController,
     userRole: String?
 ) {
-    // 1. Agregamos "BottomNavItem.Profile" a la lista base
+
     val items = mutableListOf(
         BottomNavItem.Library,
         BottomNavItem.Store,
         BottomNavItem.Cart,
-        BottomNavItem.Profile // <--- ¡AQUÍ ESTÁ LA CORRECCIÓN!
+        BottomNavItem.Profile
     )
 
-    // 2. Si es ADMIN, agregamos el panel de administración al final
     if (userRole == "ADMIN") {
         items.add(BottomNavItem.Admin)
     }

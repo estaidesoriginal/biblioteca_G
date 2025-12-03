@@ -22,7 +22,6 @@ fun AddProductScreen(
     onSave: (Product) -> Unit,
     onBack: () -> Unit
 ) {
-    // Estados del formulario
     var name by remember { mutableStateOf(productToEdit?.name ?: "") }
     var description by remember { mutableStateOf(productToEdit?.description ?: "") }
     var priceStr by remember { mutableStateOf(productToEdit?.price?.toString() ?: "") }
@@ -45,7 +44,6 @@ fun AddProductScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                // Validación básica
                 if (name.isBlank() || priceStr.isBlank()) {
                     showError = true
                 } else {

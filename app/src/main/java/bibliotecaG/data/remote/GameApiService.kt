@@ -5,10 +5,8 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface GameApiService {
-    // ... (Mantén tus endpoints anteriores de Juegos, Usuarios, Productos) ...
-    // Solo estoy agregando/modificando la sección de compras abajo:
 
-    // --- SECCIÓN: BIBLIOTECA (Juegos) ---
+    // --- JUEGOS ---
     @GET("juegos")
     suspend fun getAllGames(): List<Game>
 
@@ -24,14 +22,14 @@ interface GameApiService {
     @DELETE("juegos/{id}")
     suspend fun deleteGame(@Path("id") id: String)
 
-    // --- SECCIÓN: USUARIOS ---
+    // --- USUARIOS ---
     @POST("usuarios/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
     @POST("usuarios/registro")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
-    // --- SECCIÓN: TIENDA ---
+    // --- TIENDA ---
     @GET("productos")
     suspend fun getAllProducts(): List<Product>
 
@@ -44,23 +42,21 @@ interface GameApiService {
     @DELETE("productos/{id}")
     suspend fun deleteProduct(@Path("id") id: String)
 
-    // --- SECCIÓN: COMPRAS (ADMIN) ---
-
-    // Crear compra (Cliente)
+    // --- COMPRAS (CLIENTE) ---
     @POST("compras")
     suspend fun confirmPurchase(
         @Body items: List<CartItem>,
         @Query("userId") userId: String
-    ): Response<Order> // Ahora devuelve Order mapeado
+    ): Response<Order> // Devuelve la orden creada
 
-    // Ver todas las compras (Admin)
+    // --- GESTIÓN DE ÓRDENES (ADMIN) ---
+    // 1. Ver todas las compras
     @GET("compras")
     suspend fun getAllOrders(): List<Order>
 
-    // Cambiar estado (Admin)
     @PUT("compras/{id}/estado")
     suspend fun updateOrderStatus(
         @Path("id") id: String,
-        @Body body: Map<String, String> // Enviamos { "status": "nuevo_estado" }
+        @Body body: Map<String, String> // { "status": "pagado" }
     ): Response<Order>
 }

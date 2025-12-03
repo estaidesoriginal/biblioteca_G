@@ -8,21 +8,15 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class GameRepository(private val api: GameApiService) {
 
-    // Lista en memoria (Source of Truth para la UI)
     private val _games = MutableStateFlow<List<Game>>(emptyList())
     val games: StateFlow<List<Game>> = _games.asStateFlow()
 
-    // Manejo de errores
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    // Estado de carga (útil para mostrar una barra de progreso)
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    /**
-     * Descarga los juegos desde la API
-     */
     suspend fun fetchGames() {
         _isLoading.value = true
         try {
@@ -41,7 +35,7 @@ class GameRepository(private val api: GameApiService) {
         _isLoading.value = true
         try {
             api.createGame(game)
-            fetchGames() // Refrescamos la lista completa tras crear
+            fetchGames()
         } catch (e: Exception) {
             _error.value = "Error al crear: ${e.message}"
         } finally {

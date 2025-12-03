@@ -90,7 +90,6 @@ fun AddGameScreen(
                                 tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                                 imageUrl = imageUrl.ifBlank { null },
                                 externalLinks = externalLinks.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                                // Esto preserva el 'id' y el 'creatorRole' original
                             )
                         }
                         onSave(gameToSave)
