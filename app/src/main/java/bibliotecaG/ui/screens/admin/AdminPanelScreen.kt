@@ -1,6 +1,5 @@
 package bibliotecaG.ui.screens.admin
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,15 +20,20 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import bibliotecaG.data.model.Order
 import bibliotecaG.ui.viewmodel.AdminViewModel
+import bibliotecaG.ui.viewmodel.AuthViewModel
+import bibliotecaG.ui.viewmodel.UserRoles
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminPanelScreen(
     navController: NavController,
-    adminViewModel: AdminViewModel
+    adminViewModel: AdminViewModel,
+    // Necesitamos saber el rol para ocultar botones de productos si es MANAGER
+    currentUserRole: String?
 ) {
     val orders by adminViewModel.orders.collectAsState()
     val error by adminViewModel.error.collectAsState()
+
     var selectedTabIndex by remember { mutableStateOf(0) }
     var orderToEdit by remember { mutableStateOf<Order?>(null) }
 
@@ -40,7 +44,12 @@ fun AdminPanelScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Panel de Administración") },)
+                title = { Text("Panel de Administración") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { adminViewModel.loadOrders() }) {
@@ -53,49 +62,73 @@ fun AdminPanelScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            // --- ACCIONES DE PRODUCTO ---
+            // Solo visibles para el ADMIN.
+            // El MANAGER solo gestiona órdenes, no crea productos desde aquí.
+            // El SELLER ni siquiera tiene acceso a esta pantalla.
+            if (currentUserRole == UserRoles.ADMIN) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { navController.navigate("addProduct") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Crear Producto")
+                        }
+                        OutlinedButton(
+                            onClick = { navController.navigate("store") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Ver Tienda")
+                        }
+                    }
+                }
+            } else if (currentUserRole == UserRoles.MANAGER) {
+                // Mensaje informativo para el Manager
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Modo Gerente: Gestión de Órdenes Habilitada",
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+
+            // --- PESTAÑAS (Igual que antes) ---
             TabRow(selectedTabIndex = selectedTabIndex) {
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
-                    text = { Text("Detalles") },
+                    text = { Text("1. Detalles") },
                     icon = { Icon(Icons.Default.List, null) }
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
                     onClick = { selectedTabIndex = 1 },
-                    text = { Text("Gestión") },
+                    text = { Text("2. Gestión") },
                     icon = { Icon(Icons.Default.Settings, null) }
                 )
             }
 
+            // --- CONTENIDO ---
             Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 if (error != null) {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        modifier = Modifier.align(Alignment.TopCenter)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Error: $error", color = MaterialTheme.colorScheme.onErrorContainer)
-                        }
-                    }
+                    Text("Error: $error", color = MaterialTheme.colorScheme.error)
                 } else if (orders.isEmpty()) {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("No hay órdenes registradas.", color = Color.Gray)
-                        Spacer(Modifier.height(8.dp))
-                        TextButton(onClick = { adminViewModel.loadOrders() }) {
-                            Text("Intentar recargar")
-                        }
-                    }
+                    Text("No hay órdenes registradas.", modifier = Modifier.align(Alignment.Center))
                 } else {
-
                     when (selectedTabIndex) {
                         0 -> OrdersDetailPanel(orders)
                         1 -> OrdersManagementPanel(orders, onEditClick = { orderToEdit = it })
@@ -117,17 +150,21 @@ fun AdminPanelScreen(
     }
 }
 
+// ... (Resto de los componentes: OrdersDetailPanel, OrdersManagementPanel, etc. se mantienen igual)
+// Asegúrate de que el resto del archivo contenga las funciones auxiliares que te di en la respuesta anterior.
 @Composable
 fun OrdersDetailPanel(orders: List<Order>) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items(orders) { order ->
             Card(elevation = CardDefaults.cardElevation(4.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    // Cabecera: ID y Usuario
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
+                            // ID consistente de 8 caracteres
                             Text("Orden #${order.id.takeLast(8)}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                             Text("Usuario ID: ${order.userId}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                         }
@@ -139,6 +176,7 @@ fun OrdersDetailPanel(orders: List<Order>) {
                     Text("Productos:", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(4.dp))
 
+                    // Lista de productos dentro de la orden
                     if (order.items.isEmpty()) {
                         Text("Sin detalles de items.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     } else {
@@ -185,7 +223,7 @@ fun OrdersManagementPanel(orders: List<Order>, onEditClick: (Order) -> Unit) {
                     StatusChip(order.status)
 
                     IconButton(onClick = { onEditClick(order) }) {
-                        Icon(Icons.Default.Edit, "Cambiar")
+                        Icon(Icons.Default.Edit, "Cambiar Estado")
                     }
                 }
             }

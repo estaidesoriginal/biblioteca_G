@@ -28,7 +28,7 @@ private val CyberColors = lightColorScheme(
     primary = Color(0xFF2FFF00),
     onPrimary = Color(0xFFFF00FF),
     secondary = Color(0xFF2FFF00),
-    background = Color(0x90121212),
+    background = Color(0x11121212),
     surface = Color(0xFF1E1E1E),
     onSurface = Color(0xFFFF00FF)
 )

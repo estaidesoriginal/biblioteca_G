@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import bibliotecaG.data.model.Product
 import bibliotecaG.ui.viewmodel.AuthViewModel
 import bibliotecaG.ui.viewmodel.StoreViewModel
+import bibliotecaG.ui.viewmodel.UserRoles // Importamos los roles
 import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,19 +44,24 @@ fun StoreScreen(
         storeViewModel.searchProducts(searchQuery)
     }
 
+    // LÓGICA DE PERMISOS DE GESTIÓN (ADMIN Y SELLER)
+    // El Manager NO entra aquí.
+    val canManageProducts = currentUserRole == UserRoles.ADMIN || currentUserRole == UserRoles.SELLER
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Tienda Oficial") },
                 actions = {
-                    if (currentUserRole == "ADMIN") {
+                    if (canManageProducts) {
                         IconButton(onClick = { navController.navigate("addProduct") }) {
                             Icon(Icons.Default.Add, contentDescription = "Nuevo Producto")
                         }
                     }
                 }
             )
-        }
+        },
+        floatingActionButton = { }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -82,7 +88,8 @@ fun StoreScreen(
                     items(filteredProducts) { product ->
                         ProductCard(
                             product = product,
-                            userRole = currentUserRole,
+                            userRole = currentUserRole, // Pasamos el rol para la lógica interna
+                            canManage = canManageProducts,
                             onAddToCart = { storeViewModel.addToCart(product) },
                             onEdit = { navController.navigate("editProduct/${product.id}") },
                             onDelete = { storeViewModel.deleteProduct(product) }
@@ -98,12 +105,14 @@ fun StoreScreen(
 fun ProductCard(
     product: Product,
     userRole: String?,
+    canManage: Boolean,
     onAddToCart: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     Card(elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
+
             AsyncImage(
                 model = product.imageUrl ?: "https://via.placeholder.com/150",
                 contentDescription = product.name,
@@ -113,7 +122,6 @@ fun ProductCard(
                     .padding(bottom = 12.dp),
                 contentScale = ContentScale.Crop
             )
-            // ----------------------------------------
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(product.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -121,27 +129,36 @@ fun ProductCard(
             }
 
             Text(product.category, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-
             Spacer(Modifier.height(8.dp))
-
             Text(product.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
-
             Spacer(Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                if (userRole == "ADMIN") {
+                if (canManage) {
+                    // VISTA PARA ADMIN Y SELLER (Gestión)
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = onDelete) {
                         Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
                     }
-                } else {
+                } else if (userRole != UserRoles.MANAGER) {
                     Button(onClick = onAddToCart) {
-                        Icon(Icons.Default.ShoppingCart, null, modifier = Modifier.size(18.dp))
+                        Icon(
+                            imageVector = Icons.Filled.ShoppingCart,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text("Agregar")
                     }
+                } else {
+                    Text(
+                        "(No es posible comprar por tu estatus de manager)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
                 }
             }
         }

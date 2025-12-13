@@ -30,7 +30,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mi Biblioteca de Juegos") }
+                title = { Text("La Biblioteca de Juegos") }
             )
         },
         floatingActionButton = {

@@ -8,7 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.* import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -29,6 +30,7 @@ import bibliotecaG.ui.screens.detail.GameDetailScreen
 import bibliotecaG.ui.screens.home.HomeScreen
 import bibliotecaG.ui.screens.login.LoginScreen
 import bibliotecaG.ui.screens.profile.ProfileScreen
+import bibliotecaG.ui.screens.start.StartScreen
 import bibliotecaG.ui.screens.store.AddProductScreen
 import bibliotecaG.ui.screens.store.StoreScreen
 import bibliotecaG.ui.theme.BibliotecaGTheme
@@ -117,7 +119,9 @@ class MainActivity : ComponentActivity() {
 
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = navBackStackEntry?.destination?.route
-                    val showBottomBar = currentRoute in listOf("home", "store", "cart", "admin_panel", "profile")
+
+                    // CORRECCIÓN: "library" en lugar de "home" en la lista de visibilidad
+                    val showBottomBar = currentRoute in listOf("start", "library", "store", "cart", "admin_panel", "profile")
 
                     Scaffold(
                         bottomBar = {
@@ -128,11 +132,17 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(
                             navController = navController,
-                            startDestination = "home",
+                            startDestination = "start",
                             modifier = Modifier.padding(innerPadding)
                         ) {
-                            // --- VISTAS PRINCIPALES ---
-                            composable("home") {
+
+                            // --- RUTA: INICIO ---
+                            composable("start") {
+                                StartScreen()
+                            }
+
+                            // --- RUTA: BIBLIOTECA (Ahora usamos "library" consistentemente) ---
+                            composable("library") {
                                 HomeScreen(navController, gameViewModel, authViewModel)
                             }
 
@@ -145,10 +155,9 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable("admin_panel") {
-                                AdminPanelScreen(navController, adminViewModel)
+                                AdminPanelScreen(navController, adminViewModel, currentUserRole)
                             }
 
-                            // --- PERFIL (Con botón dinámico) ---
                             composable("profile") {
                                 ProfileScreen(
                                     authViewModel = authViewModel,
@@ -156,23 +165,31 @@ class MainActivity : ComponentActivity() {
                                     onThemeChange = { newTheme -> currentTheme = newTheme },
                                     onLogout = {
                                         authViewModel.logout()
+                                        // Redirigir al login y limpiar historial
+                                        navController.navigate("login") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
                                     },
                                     onLoginRequest = {
                                         navController.navigate("login")
                                     }
                                 )
                             }
+
+                            // --- VISTAS SECUNDARIAS ---
                             composable("login") {
                                 LoginScreen(
                                     authViewModel = authViewModel,
                                     onLoginSuccess = {
-                                        navController.navigate("home") {
+                                        // CORRECCIÓN: Redirigir a "library" (no "home")
+                                        navController.navigate("library") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     },
                                     onBack = { navController.popBackStack() }
                                 )
                             }
+
                             composable("addGame") {
                                 AddGameScreen(
                                     gameToEdit = null,
@@ -186,6 +203,7 @@ class MainActivity : ComponentActivity() {
                                     onBack = { navController.popBackStack() }
                                 )
                             }
+
                             composable("editGame/{gameId}") { backStackEntry ->
                                 val gameId = backStackEntry.arguments?.getString("gameId")
                                 val games by gameViewModel.games.collectAsState()
@@ -208,6 +226,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
+
                             composable("detail/{gameId}") { backStackEntry ->
                                 val gameId = backStackEntry.arguments?.getString("gameId")
                                 val games by gameViewModel.games.collectAsState()
@@ -229,6 +248,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
+
                             composable("addProduct") {
                                 AddProductScreen(
                                     onSave = { product ->
@@ -238,6 +258,7 @@ class MainActivity : ComponentActivity() {
                                     onBack = { navController.popBackStack() }
                                 )
                             }
+
                             composable("editProduct/{productId}") { backStackEntry ->
                                 val productId = backStackEntry.arguments?.getString("productId")
                                 val products by storeViewModel.products.collectAsState()
