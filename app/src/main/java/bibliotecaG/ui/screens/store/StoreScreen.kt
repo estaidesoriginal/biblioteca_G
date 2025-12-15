@@ -33,28 +33,20 @@ fun StoreScreen(
     authViewModel: AuthViewModel
 ) {
     var searchQuery by remember { mutableStateOf("") }
-
-    // Estado para el filtro de categoría
-    var selectedCategory by remember { mutableStateOf<String?>(null) } // null = "Todas"
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
-
     val products by storeViewModel.products.collectAsState()
     val currentUserRole by authViewModel.currentUserRole.collectAsState()
-
-    // Calculamos las categorías disponibles dinámicamente
     val availableCategories = remember(products) {
         products.flatMap { it.categories }.distinct().sorted()
     }
 
-    // Lógica de filtrado combinada (Búsqueda + Categoría)
     val filteredProducts = remember(products, searchQuery, selectedCategory) {
         products.filter { product ->
-            // 1. Coincide con la búsqueda de texto
             val matchesSearch = searchQuery.isBlank() ||
                     product.name.contains(searchQuery, true) ||
                     product.categories.any { it.contains(searchQuery, true) }
 
-            // 2. Coincide con la categoría seleccionada (si hay una)
             val matchesCategory = selectedCategory == null ||
                     product.categories.contains(selectedCategory)
 
@@ -85,7 +77,6 @@ fun StoreScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Barra de Búsqueda
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -96,7 +87,6 @@ fun StoreScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // --- FILTRO POR CATEGORÍA (Dropdown) ---
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -117,7 +107,6 @@ fun StoreScreen(
                         expanded = isCategoryMenuExpanded,
                         onDismissRequest = { isCategoryMenuExpanded = false }
                     ) {
-                        // Opción para resetear el filtro
                         DropdownMenuItem(
                             text = { Text("Todas") },
                             onClick = {
@@ -125,7 +114,6 @@ fun StoreScreen(
                                 isCategoryMenuExpanded = false
                             }
                         )
-                        // Opciones dinámicas
                         availableCategories.forEach { category ->
                             DropdownMenuItem(
                                 text = { Text(category) },
@@ -141,7 +129,6 @@ fun StoreScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Lista de Productos
             if (filteredProducts.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -198,7 +185,6 @@ fun ProductCard(
                 Text("$${product.price}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
             }
 
-            // Mostramos las categorías
             val categoriesText = product.categories?.joinToString(", ") ?: "Sin categoría"
             Text(categoriesText, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
 
@@ -237,4 +223,5 @@ fun ProductCard(
             }
         }
     }
+
 }
