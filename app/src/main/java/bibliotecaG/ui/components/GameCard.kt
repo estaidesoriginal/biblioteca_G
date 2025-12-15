@@ -48,7 +48,7 @@ fun GameCard(game: Game, onClick: () -> Unit) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Juego Protegido",
-                            tint = Color(0xFFFFD700), // Color Dorado
+                            tint = Color(0xFFFFD700),
                             modifier = Modifier.size(18.dp)
                         )
                     }
