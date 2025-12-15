@@ -24,7 +24,6 @@ class StoreViewModel(private val repository: StoreRepository) : ViewModel() {
         repository.fetchProducts()
     }
 
-    // --- ACCIONES DE ADMIN ---
     fun addProduct(product: Product) = viewModelScope.launch {
         repository.createProduct(product)
     }
@@ -45,9 +44,7 @@ class StoreViewModel(private val repository: StoreRepository) : ViewModel() {
 
     fun confirmPurchase(userId: String) = viewModelScope.launch {
         _lastPurchaseTotal.value = getTotal()
-
         val success = repository.sendPurchase(userId)
-
         if (success) {
             _purchaseSuccess.value = "ORD-${UUID.randomUUID().toString().take(8).uppercase()}"
         }
@@ -58,10 +55,13 @@ class StoreViewModel(private val repository: StoreRepository) : ViewModel() {
         _lastPurchaseTotal.value = 0.0
     }
 
+    // CORRECCIÓN: Agregamos el operador ? para evitar NullPointerException si categories es null
     fun searchProducts(query: String): List<Product> {
         val q = query.lowercase()
-        return products.value.filter {
-            it.name.lowercase().contains(q) || it.category.lowercase().contains(q)
+        return products.value.filter { product ->
+            product.name.lowercase().contains(q) ||
+                    // El operador ?.let y el booleano al final evitan el crash
+                    (product.categories?.any { it.lowercase().contains(q) } == true)
         }
     }
 }

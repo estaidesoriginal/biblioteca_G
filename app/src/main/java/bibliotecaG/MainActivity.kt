@@ -22,6 +22,7 @@ import bibliotecaG.data.remote.RetrofitClient
 import bibliotecaG.data.repository.AdminRepository
 import bibliotecaG.data.repository.GameRepository
 import bibliotecaG.data.repository.StoreRepository
+import bibliotecaG.data.local.SessionManager // IMPORTANTE: Importar SessionManager
 import bibliotecaG.ui.components.BottomNavigationBar
 import bibliotecaG.ui.screens.addGame.AddGameScreen
 import bibliotecaG.ui.screens.admin.AdminPanelScreen
@@ -54,6 +55,11 @@ class MainActivity : ComponentActivity() {
         AdminRepository(RetrofitClient.apiService)
     }
 
+    // --- NUEVO: Inicializamos SessionManager ---
+    private val sessionManager by lazy {
+        SessionManager(applicationContext)
+    }
+
     // --- FACTORIES ---
     private val gameViewModelFactory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -75,11 +81,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // --- CORRECCIÓN EN FACTORY: Pasamos SessionManager ---
     private val authViewModelFactory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return AuthViewModel(RetrofitClient.apiService) as T
+                // Ahora AuthViewModel recibe (api, sessionManager)
+                return AuthViewModel(RetrofitClient.apiService, sessionManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
@@ -120,7 +128,6 @@ class MainActivity : ComponentActivity() {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = navBackStackEntry?.destination?.route
 
-                    // CORRECCIÓN: "library" en lugar de "home" en la lista de visibilidad
                     val showBottomBar = currentRoute in listOf("start", "library", "store", "cart", "admin_panel", "profile")
 
                     Scaffold(
@@ -136,12 +143,8 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding)
                         ) {
 
-                            // --- RUTA: INICIO ---
-                            composable("start") {
-                                StartScreen()
-                            }
+                            composable("start") { StartScreen() }
 
-                            // --- RUTA: BIBLIOTECA (Ahora usamos "library" consistentemente) ---
                             composable("library") {
                                 HomeScreen(navController, gameViewModel, authViewModel)
                             }
@@ -155,7 +158,14 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable("admin_panel") {
-                                AdminPanelScreen(navController, adminViewModel, currentUserRole)
+                                // CORRECCIÓN: Se agregan gameViewModel y storeViewModel
+                                AdminPanelScreen(
+                                    navController = navController,
+                                    adminViewModel = adminViewModel,
+                                    gameViewModel = gameViewModel,   // Agregado
+                                    storeViewModel = storeViewModel, // Agregado
+                                    currentUserRole = currentUserRole
+                                )
                             }
 
                             composable("profile") {
@@ -165,9 +175,11 @@ class MainActivity : ComponentActivity() {
                                     onThemeChange = { newTheme -> currentTheme = newTheme },
                                     onLogout = {
                                         authViewModel.logout()
-                                        // Redirigir al login y limpiar historial
+                                        // CORRECCIÓN LÍNEA 164 APROX:
+                                        // Usamos una limpieza más segura del BackStack
                                         navController.navigate("login") {
-                                            popUpTo(0) { inclusive = true }
+                                            // Limpiamos todo el grafo de navegación
+                                            popUpTo(navController.graph.id) { inclusive = true }
                                         }
                                     },
                                     onLoginRequest = {
@@ -176,12 +188,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
-                            // --- VISTAS SECUNDARIAS ---
                             composable("login") {
                                 LoginScreen(
                                     authViewModel = authViewModel,
                                     onLoginSuccess = {
-                                        // CORRECCIÓN: Redirigir a "library" (no "home")
                                         navController.navigate("library") {
                                             popUpTo("login") { inclusive = true }
                                         }

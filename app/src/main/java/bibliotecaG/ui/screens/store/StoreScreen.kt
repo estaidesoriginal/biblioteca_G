@@ -5,14 +5,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,7 +22,7 @@ import androidx.navigation.NavController
 import bibliotecaG.data.model.Product
 import bibliotecaG.ui.viewmodel.AuthViewModel
 import bibliotecaG.ui.viewmodel.StoreViewModel
-import bibliotecaG.ui.viewmodel.UserRoles // Importamos los roles
+import bibliotecaG.ui.viewmodel.UserRoles
 import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,17 +34,34 @@ fun StoreScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
+    // Estado para el filtro de categoría
+    var selectedCategory by remember { mutableStateOf<String?>(null) } // null = "Todas"
+    var isCategoryMenuExpanded by remember { mutableStateOf(false) }
+
     val products by storeViewModel.products.collectAsState()
     val currentUserRole by authViewModel.currentUserRole.collectAsState()
 
-    val filteredProducts = if (searchQuery.isBlank()) {
-        products
-    } else {
-        storeViewModel.searchProducts(searchQuery)
+    // Calculamos las categorías disponibles dinámicamente
+    val availableCategories = remember(products) {
+        products.flatMap { it.categories }.distinct().sorted()
     }
 
-    // LÓGICA DE PERMISOS DE GESTIÓN (ADMIN Y SELLER)
-    // El Manager NO entra aquí.
+    // Lógica de filtrado combinada (Búsqueda + Categoría)
+    val filteredProducts = remember(products, searchQuery, selectedCategory) {
+        products.filter { product ->
+            // 1. Coincide con la búsqueda de texto
+            val matchesSearch = searchQuery.isBlank() ||
+                    product.name.contains(searchQuery, true) ||
+                    product.categories.any { it.contains(searchQuery, true) }
+
+            // 2. Coincide con la categoría seleccionada (si hay una)
+            val matchesCategory = selectedCategory == null ||
+                    product.categories.contains(selectedCategory)
+
+            matchesSearch && matchesCategory
+        }
+    }
+
     val canManageProducts = currentUserRole == UserRoles.ADMIN || currentUserRole == UserRoles.SELLER
 
     Scaffold(
@@ -69,6 +85,7 @@ fun StoreScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // Barra de Búsqueda
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -77,18 +94,71 @@ fun StoreScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(Modifier.height(12.dp))
+
+            // --- FILTRO POR CATEGORÍA (Dropdown) ---
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Filtrar por:", style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.width(8.dp))
+
+                Box {
+                    OutlinedButton(
+                        onClick = { isCategoryMenuExpanded = true }
+                    ) {
+                        Text(selectedCategory ?: "Todas las categorías")
+                        Spacer(Modifier.width(4.dp))
+                        Icon(Icons.Default.ArrowDropDown, null)
+                    }
+
+                    DropdownMenu(
+                        expanded = isCategoryMenuExpanded,
+                        onDismissRequest = { isCategoryMenuExpanded = false }
+                    ) {
+                        // Opción para resetear el filtro
+                        DropdownMenuItem(
+                            text = { Text("Todas") },
+                            onClick = {
+                                selectedCategory = null
+                                isCategoryMenuExpanded = false
+                            }
+                        )
+                        // Opciones dinámicas
+                        availableCategories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category) },
+                                onClick = {
+                                    selectedCategory = category
+                                    isCategoryMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(16.dp))
 
+            // Lista de Productos
             if (filteredProducts.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No hay productos disponibles.", style = MaterialTheme.typography.bodyLarge)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("No se encontraron productos.", style = MaterialTheme.typography.bodyLarge)
+                        if (selectedCategory != null) {
+                            TextButton(onClick = { selectedCategory = null }) {
+                                Text("Limpiar filtros")
+                            }
+                        }
+                    }
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(filteredProducts) { product ->
                         ProductCard(
                             product = product,
-                            userRole = currentUserRole, // Pasamos el rol para la lógica interna
+                            userRole = currentUserRole,
                             canManage = canManageProducts,
                             onAddToCart = { storeViewModel.addToCart(product) },
                             onEdit = { navController.navigate("editProduct/${product.id}") },
@@ -128,14 +198,18 @@ fun ProductCard(
                 Text("$${product.price}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
             }
 
-            Text(product.category, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            // Mostramos las categorías
+            val categoriesText = product.categories?.joinToString(", ") ?: "Sin categoría"
+            Text(categoriesText, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+
             Spacer(Modifier.height(8.dp))
+
             Text(product.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+
             Spacer(Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 if (canManage) {
-                    // VISTA PARA ADMIN Y SELLER (Gestión)
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
                     }
@@ -154,7 +228,7 @@ fun ProductCard(
                     }
                 } else {
                     Text(
-                        "(No es posible comprar por tu estatus de manager)",
+                        "Solo Lectura (Manager)",
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.Gray,
                         modifier = Modifier.align(Alignment.CenterVertically)

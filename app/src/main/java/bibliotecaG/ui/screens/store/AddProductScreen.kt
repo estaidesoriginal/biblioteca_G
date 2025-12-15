@@ -1,7 +1,9 @@
 package bibliotecaG.ui.screens.store
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -10,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import bibliotecaG.data.model.Product
 import java.util.UUID
@@ -25,7 +26,10 @@ fun AddProductScreen(
     var name by remember { mutableStateOf(productToEdit?.name ?: "") }
     var description by remember { mutableStateOf(productToEdit?.description ?: "") }
     var priceStr by remember { mutableStateOf(productToEdit?.price?.toString() ?: "") }
-    var category by remember { mutableStateOf(productToEdit?.category ?: "") }
+
+    // CAMBIO: Manejamos categorías como texto separado por comas
+    var categoriesStr by remember { mutableStateOf(productToEdit?.categories?.joinToString(", ") ?: "") }
+
     var stockStr by remember { mutableStateOf(productToEdit?.stock?.toString() ?: "") }
     var imageUrl by remember { mutableStateOf(productToEdit?.imageUrl ?: "") }
 
@@ -53,7 +57,8 @@ fun AddProductScreen(
                             name = name,
                             description = description,
                             price = priceStr.toDouble(),
-                            category = category,
+                            // CAMBIO: Convertimos el texto a Lista
+                            categories = categoriesStr.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                             stock = stockStr.toIntOrNull() ?: 0,
                             imageUrl = imageUrl.ifBlank { null }
                         )
@@ -68,7 +73,11 @@ fun AddProductScreen(
         }
     ) { padding ->
         Column(
-            modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize(),
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (showError) {
@@ -77,36 +86,42 @@ fun AddProductScreen(
 
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
-                label = { Text("Nombre del Producto") }, modifier = Modifier.fillMaxWidth()
+                label = { Text("Nombre del Producto") }, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             OutlinedTextField(
                 value = description, onValueChange = { description = it },
-                label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth()
+                label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = priceStr, onValueChange = { priceStr = it },
                     label = { Text("Precio ($)") }, modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
                 )
                 OutlinedTextField(
                     value = stockStr, onValueChange = { stockStr = it },
                     label = { Text("Stock") }, modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
                 )
             }
 
+            // CAMBIO: Campo de categorías actualizado
             OutlinedTextField(
-                value = category, onValueChange = { category = it },
-                label = { Text("Categoría (ej. Consolas, Juegos)") }, modifier = Modifier.fillMaxWidth()
+                value = categoriesStr, onValueChange = { categoriesStr = it },
+                label = { Text("Categorías (separadas por coma)") },
+                placeholder = { Text("Ej: Ropa, Accesorios, Oferta") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             OutlinedTextField(
                 value = imageUrl, onValueChange = { imageUrl = it },
                 label = { Text("URL de Imagen") }, modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done)
             )
         }
     }

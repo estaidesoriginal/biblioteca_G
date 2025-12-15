@@ -11,14 +11,10 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
-    // NUEVO: Pantalla de Inicio (Bienvenida/Explicación)
     object Start : BottomNavItem("start", "Inicio", Icons.Default.Home)
-
-    // MODIFICADO: Antes era "home", ahora es "library" con icono de Lista
     object Library : BottomNavItem("library", "Juegos", Icons.Default.Book)
-
     object Store : BottomNavItem("store", "Tienda", Icons.Default.ShoppingBag)
     object Cart : BottomNavItem("cart", "Carrito", Icons.Default.ShoppingCart)
     object Profile : BottomNavItem("profile", "Perfil", Icons.Default.Person)
-    object Admin : BottomNavItem("admin_panel", "Compras", Icons.Default.Ballot)
+    object Admin : BottomNavItem("admin_panel", "Gestion", Icons.Default.Ballot)
 }

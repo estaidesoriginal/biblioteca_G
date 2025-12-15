@@ -23,12 +23,8 @@ fun StartScreen() {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Bienvenido a BibliotecaG") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                title = { Text("Bienvenido a BibliotecaG") }
                 )
-            )
         }
     ) { padding ->
         Column(

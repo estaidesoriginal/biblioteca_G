@@ -2,6 +2,7 @@ package bibliotecaG.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import bibliotecaG.data.local.SessionManager // Importante
 import bibliotecaG.data.model.LoginRequest
 import bibliotecaG.data.model.RegisterRequest
 import bibliotecaG.data.model.User
@@ -14,17 +15,23 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class AuthViewModel(private val api: GameApiService) : ViewModel() {
+// Agregamos SessionManager al constructor
+class AuthViewModel(
+    private val api: GameApiService,
+    private val sessionManager: SessionManager
+) : ViewModel() {
 
-    private val _currentUser = MutableStateFlow<User?>(null)
+    // Inicializamos _currentUser con lo que haya en la memoria (puede ser null o el usuario guardado)
+    private val _currentUser = MutableStateFlow<User?>(sessionManager.getUser())
     val currentUser = _currentUser.asStateFlow()
 
+    // Este StateFlow se actualiza automáticamente basado en currentUser
     val currentUserRole: StateFlow<String?> = _currentUser
         .map { user -> user?.role }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
-            initialValue = null
+            initialValue = sessionManager.getUser()?.role // Valor inicial desde memoria
         )
 
     private val _isLoading = MutableStateFlow(false)
@@ -40,7 +47,15 @@ class AuthViewModel(private val api: GameApiService) : ViewModel() {
             try {
                 val response = api.login(LoginRequest(email, pass))
                 if (response.isSuccessful && response.body() != null) {
-                    _currentUser.value = response.body()!!.user
+                    val user = response.body()!!.user
+                    val token = response.body()!!.token
+
+                    // Guardamos en memoria interna
+                    sessionManager.saveUser(user)
+                    if (token != null) sessionManager.saveToken(token)
+
+                    // Actualizamos el estado de la app
+                    _currentUser.value = user
                     onSuccess()
                 } else {
                     _error.value = "Credenciales inválidas"
@@ -60,7 +75,12 @@ class AuthViewModel(private val api: GameApiService) : ViewModel() {
             try {
                 val response = api.register(RegisterRequest(name, email, pass))
                 if (response.isSuccessful && response.body() != null) {
-                    _currentUser.value = response.body()!!.user
+                    val user = response.body()!!.user
+
+                    // Guardamos sesión también al registrarse
+                    sessionManager.saveUser(user)
+
+                    _currentUser.value = user
                     onSuccess()
                 } else {
                     _error.value = "Error en el registro"
@@ -74,6 +94,8 @@ class AuthViewModel(private val api: GameApiService) : ViewModel() {
     }
 
     fun logout() {
+        // Borramos la memoria interna
+        sessionManager.clearSession()
         _currentUser.value = null
     }
 
