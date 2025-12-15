@@ -3,8 +3,11 @@
 * Funcionalidades: Biblioteca de Juegos con E-commerce con interfaz personalizable y adaptable segun el rol del usuario
 
 -User: posee acceso al catalogo y biblioteca, puede crear,editar y borrar juegos (menos lo que esten protegidos por administrador)
+
 -Seller: posee acceso a la creacion de productos para la tienda
+
 -Manager: posee acceso al panel "Gestion" donde este puede ver la cantidad de productos y juegos que hay,resumenes de ventas, detalles de compras y actualizar el estado de una compra
+
 -Admin: posee acceso a todas las funcionalidades de la app, ademas de un nuevo panel de gestion de usuarios,donde este puede modificar el rol o borrar de un usuario
 
 *Instrucciones para ejecucion:
