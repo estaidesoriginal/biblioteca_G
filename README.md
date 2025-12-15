@@ -10,11 +10,14 @@
 
 -Admin: posee acceso a todas las funcionalidades de la app, ademas de un nuevo panel de gestion de usuarios,donde este puede modificar el rol o borrar de un usuario
 
-*Instrucciones para ejecucion:
+* Instrucciones para ejecucion:
 ingresar al link https://api-biblioteca-apgn.onrender.com para 'prender' la api, luego 
 
-*Ubicacion de la APK:
+* Ubicacion de la APK:
 https://drive.google.com/drive/folders/1Wr7eM-dzILV9UkXuC7qN5djVmycGKx57?usp=sharing
+
+* Ubicacion de la API:
+https://github.com/estaidesoriginal/api_biblioteca
 
 * Endpoints:
 - 👤 Usuarios: /usuarios -
