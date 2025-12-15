@@ -26,13 +26,9 @@ fun AddProductScreen(
     var name by remember { mutableStateOf(productToEdit?.name ?: "") }
     var description by remember { mutableStateOf(productToEdit?.description ?: "") }
     var priceStr by remember { mutableStateOf(productToEdit?.price?.toString() ?: "") }
-
-    // CAMBIO: Manejamos categorías como texto separado por comas
     var categoriesStr by remember { mutableStateOf(productToEdit?.categories?.joinToString(", ") ?: "") }
-
     var stockStr by remember { mutableStateOf(productToEdit?.stock?.toString() ?: "") }
     var imageUrl by remember { mutableStateOf(productToEdit?.imageUrl ?: "") }
-
     var showError by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -57,7 +53,6 @@ fun AddProductScreen(
                             name = name,
                             description = description,
                             price = priceStr.toDouble(),
-                            // CAMBIO: Convertimos el texto a Lista
                             categories = categoriesStr.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                             stock = stockStr.toIntOrNull() ?: 0,
                             imageUrl = imageUrl.ifBlank { null }
@@ -109,7 +104,6 @@ fun AddProductScreen(
                 )
             }
 
-            // CAMBIO: Campo de categorías actualizado
             OutlinedTextField(
                 value = categoriesStr, onValueChange = { categoriesStr = it },
                 label = { Text("Categorías (separadas por coma)") },
@@ -125,4 +119,5 @@ fun AddProductScreen(
             )
         }
     }
+
 }
