@@ -16,20 +16,16 @@ fun BottomNavigationBar(
 ) {
     val items = mutableListOf<BottomNavItem>()
 
-    // 1. Items fijos
     items.add(BottomNavItem.Start)
     items.add(BottomNavItem.Library)
     items.add(BottomNavItem.Store)
 
-    // 2. Carrito (Solo USER o Invitado)
     if (userRole == null || userRole == UserRoles.USER) {
         items.add(BottomNavItem.Cart)
     }
 
-    // 3. Perfil (Siempre)
     items.add(BottomNavItem.Profile)
 
-    // 4. Admin
     if (userRole == UserRoles.ADMIN || userRole == UserRoles.MANAGER) {
         items.add(BottomNavItem.Admin)
     }
@@ -45,23 +41,16 @@ fun BottomNavigationBar(
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        // CORRECCIÓN CRÍTICA:
-                        // Simplificamos la navegación para evitar conflictos de estado
-                        // al cambiar de rol (Invitado -> User).
 
-                        // 1. Volvemos al inicio del grafo para no acumular pantallas
                         popUpTo(navController.graph.findStartDestination().id) {
-                            // saveState = true  <-- ELIMINADO: No guardamos estado para evitar conflictos
                         }
 
-                        // 2. Evitamos duplicados si se pulsa varias veces
                         launchSingleTop = true
 
-                        // 3. restoreState = true <-- ELIMINADO: Forzamos recarga de la pantalla
-                        // Esto asegura que el Perfil se actualice correctamente con los nuevos datos
                     }
                 }
             )
         }
     }
+
 }
