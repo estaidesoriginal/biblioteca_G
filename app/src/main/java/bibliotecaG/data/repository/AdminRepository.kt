@@ -17,7 +17,6 @@ class AdminRepository(private val api: GameApiService) {
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
-    // --- ÓRDENES ---
     suspend fun fetchOrders() {
         try {
             val remoteOrders = api.getAllOrders()
@@ -41,7 +40,6 @@ class AdminRepository(private val api: GameApiService) {
         }
     }
 
-    // --- USUARIOS ---
     suspend fun fetchUsers() {
         try {
             val remoteUsers = api.getAllUsers()
@@ -60,15 +58,14 @@ class AdminRepository(private val api: GameApiService) {
         }
     }
 
-    // ESTA ES LA FUNCIÓN QUE FALTABA O ESTABA INCOMPLETA
     suspend fun updateUserRole(userId: String, newRole: String) {
         try {
-            // Creamos el mapa {"role": "MANAGER"} para enviar al backend
             val body = mapOf("role" to newRole)
             api.updateUserRole(userId, body)
-            fetchUsers() // Recargamos la lista para ver el cambio
+            fetchUsers() 
         } catch (e: Exception) {
             _error.value = "Error al cambiar rol: ${e.localizedMessage}"
         }
     }
+
 }
