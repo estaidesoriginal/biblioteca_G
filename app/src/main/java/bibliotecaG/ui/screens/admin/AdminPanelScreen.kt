@@ -37,31 +37,23 @@ import bibliotecaG.ui.viewmodel.UserRoles
 fun AdminPanelScreen(
     navController: NavController,
     adminViewModel: AdminViewModel,
-    gameViewModel: GameViewModel,   // Nuevo: Para contar juegos
-    storeViewModel: StoreViewModel, // Nuevo: Para contar productos
+    gameViewModel: GameViewModel, 
+    storeViewModel: StoreViewModel,
     currentUserRole: String?
 ) {
-    // Recolectamos datos de todos los ViewModels para el resumen
     val orders by adminViewModel.orders.collectAsState()
     val users by adminViewModel.users.collectAsState()
     val games by gameViewModel.games.collectAsState()
     val products by storeViewModel.products.collectAsState()
-
     val error by adminViewModel.error.collectAsState()
-
-    // Pestañas: 0=Resumen, 1=Detalles, 2=Estados, 3=Roles (Solo Admin)
     var selectedTabIndex by remember { mutableStateOf(0) }
-
     var orderToEdit by remember { mutableStateOf<Order?>(null) }
     var userToEdit by remember { mutableStateOf<User?>(null) }
     var userToDelete by remember { mutableStateOf<User?>(null) }
-
-    // Solo ADMIN puede ver la pestaña de roles
     val showRolesTab = currentUserRole == UserRoles.ADMIN
 
     LaunchedEffect(Unit) {
         adminViewModel.loadOrders()
-        // Aseguramos que los otros datos estén frescos para el contador
         gameViewModel.refreshGames()
         storeViewModel.loadProducts()
 
@@ -96,7 +88,6 @@ fun AdminPanelScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // --- ACCIONES DE PRODUCTO (Solo Admin) ---
             if (currentUserRole == UserRoles.ADMIN) {
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -124,12 +115,10 @@ fun AdminPanelScreen(
                 }
             }
 
-            // --- PESTAÑAS ---
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
-                // Tab 0: Resumen (Nuevo)
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
@@ -137,15 +126,13 @@ fun AdminPanelScreen(
                     icon = { Icon(Icons.Default.InsertChartOutlined, null) },
                     selectedContentColor = MaterialTheme.colorScheme.primary
                 )
-                // Tab 1: Detalles
                 Tab(
                     selected = selectedTabIndex == 1,
                     onClick = { selectedTabIndex = 1 },
                     text = { Text("Detalles  Compras") },
-                    icon = { Icon(Icons.Default.Info, null) }, // Usamos IconList (List)
+                    icon = { Icon(Icons.Default.Info, null) }, 
                     selectedContentColor = MaterialTheme.colorScheme.primary
                 )
-                // Tab 2: Estados
                 Tab(
                     selected = selectedTabIndex == 2,
                     onClick = { selectedTabIndex = 2 },
@@ -153,7 +140,6 @@ fun AdminPanelScreen(
                     icon = { Icon(Icons.Default.EditAttributes, null) },
                     selectedContentColor = MaterialTheme.colorScheme.primary
                 )
-                // Tab 3: Roles (Solo visible para ADMIN)
                 if (showRolesTab) {
                     Tab(
                         selected = selectedTabIndex == 3,
@@ -164,8 +150,7 @@ fun AdminPanelScreen(
                     )
                 }
             }
-
-            // Indicador visual para Roles
+            
             if (selectedTabIndex == 3) {
                 LinearProgressIndicator(
                     progress = 1f,
@@ -174,7 +159,6 @@ fun AdminPanelScreen(
                 )
             }
 
-            // --- CONTENIDO ---
             Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 if (error != null) {
                     Text("Error: $error", color = MaterialTheme.colorScheme.error)
@@ -208,9 +192,7 @@ fun AdminPanelScreen(
             }
         }
     }
-
-    // --- DIÁLOGOS ---
-
+    
     if (orderToEdit != null) {
         StatusChangeDialog(
             order = orderToEdit!!,
@@ -252,7 +234,6 @@ fun AdminPanelScreen(
     }
 }
 
-// --- PANEL #0: RESUMEN (NUEVO) ---
 @Composable
 fun SummaryPanel(
     gamesCount: Int,
@@ -278,12 +259,12 @@ fun SummaryPanel(
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             StatCard(title = "Total Ventas", value = totalSales.toString(), modifier = Modifier.weight(1f))
-            StatCard(title = "Pagadas", value = paidSales.toString(), modifier = Modifier.weight(1f), color = Color(0xFFE8F5E9)) // Fondo verde claro
+            StatCard(title = "Pagadas", value = paidSales.toString(), modifier = Modifier.weight(1f), color = Color(0xFFE8F5E9)) 
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatCard(title = "Pendientes", value = pendingSales.toString(), modifier = Modifier.weight(1f), color = Color(0xFFFFF3E0)) // Fondo naranja claro
-            StatCard(title = "Canceladas", value = canceledSales.toString(), modifier = Modifier.weight(1f), color = Color(0xFFFFEBEE)) // Fondo rojo claro
+            StatCard(title = "Pendientes", value = pendingSales.toString(), modifier = Modifier.weight(1f), color = Color(0xFFFFF3E0)) 
+            StatCard(title = "Canceladas", value = canceledSales.toString(), modifier = Modifier.weight(1f), color = Color(0xFFFFEBEE))
         }
     }
 }
@@ -311,8 +292,6 @@ fun EmptyState(msg: String) {
         Text(msg, color = Color.Gray)
     }
 }
-
-// --- PANELES DE PEDIDOS ---
 
 @Composable
 fun OrdersDetailPanel(orders: List<Order>) {
@@ -377,16 +356,12 @@ fun OrdersManagementPanel(orders: List<Order>, onEditClick: (Order) -> Unit) {
     }
 }
 
-// --- PANEL DE USUARIOS (Corregido) ---
-
 @Composable
 fun UsersManagementPanel(users: List<User>, onEditRole: (User) -> Unit, onDelete: (User) -> Unit) {
-    // FILTRADO: Excluimos a los administradores de la lista para protegerlos
     val filteredUsers = users.filter { it.role != UserRoles.ADMIN }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(filteredUsers) { user ->
-            // Corrección: Usamos llaves para pasar el usuario a las funciones callback
             UserRow(
                 user = user,
                 onEditRole = { onEditRole(user) },
@@ -422,8 +397,6 @@ fun UserRow(user: User, onEditRole: () -> Unit, onDelete: () -> Unit) {
     }
 }
 
-// --- UTILS & HELPERS ---
-
 @Composable
 fun StatusChip(status: String) {
     val (color, text) = when (status.lowercase()) {
@@ -438,7 +411,7 @@ fun StatusChip(status: String) {
 
 @Composable
 fun RoleChip(role: String) {
-    val color = getRoleColor(role) // Usamos la función auxiliar
+    val color = getRoleColor(role)
     Surface(color = color.copy(alpha = 0.2f), shape = MaterialTheme.shapes.small) {
         Text(role, color = color, modifier = Modifier.padding(6.dp, 2.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
     }
@@ -476,7 +449,6 @@ fun RoleChangeDialog(user: User, onDismiss: () -> Unit, onRoleSelected: (String)
         title = { Text("Rol para ${user.name}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // EXCLUSIÓN: No permitimos asignar el rol ADMIN
                 listOf(UserRoles.USER, UserRoles.SELLER, UserRoles.MANAGER).forEach { role ->
                     Button(
                         onClick = { onRoleSelected(role) },
@@ -490,4 +462,5 @@ fun RoleChangeDialog(user: User, onDismiss: () -> Unit, onRoleSelected: (String)
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } }
     )
+
 }
