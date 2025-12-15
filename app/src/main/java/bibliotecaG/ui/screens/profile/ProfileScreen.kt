@@ -41,7 +41,6 @@ fun ProfileScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icono de perfil
             Icon(
                 imageVector = Icons.Default.Person,
                 contentDescription = null,
@@ -67,12 +66,11 @@ fun ProfileScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // Datos del Usuario (SOLO LECTURA)
             OutlinedTextField(
                 value = displayName,
-                onValueChange = { }, // No permite cambios
+                onValueChange = { },
                 label = { Text("Nombre") },
-                readOnly = true, // El cursor aparece pero no el teclado
+                readOnly = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -88,7 +86,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Selector de Tema
             Text("Personalizar Apariencia", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
 
@@ -100,7 +97,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // BOTÓN DINÁMICO
             if (isLoggedIn) {
                 Button(
                     onClick = onLogout,
@@ -133,4 +129,5 @@ fun ThemeOptionButton(
         onClick = { onClick(theme) },
         label = { Text(text) }
     )
+
 }
