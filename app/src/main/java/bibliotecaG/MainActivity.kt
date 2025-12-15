@@ -22,7 +22,7 @@ import bibliotecaG.data.remote.RetrofitClient
 import bibliotecaG.data.repository.AdminRepository
 import bibliotecaG.data.repository.GameRepository
 import bibliotecaG.data.repository.StoreRepository
-import bibliotecaG.data.local.SessionManager // IMPORTANTE: Importar SessionManager
+import bibliotecaG.data.local.SessionManager
 import bibliotecaG.ui.components.BottomNavigationBar
 import bibliotecaG.ui.screens.addGame.AddGameScreen
 import bibliotecaG.ui.screens.admin.AdminPanelScreen
@@ -55,12 +55,10 @@ class MainActivity : ComponentActivity() {
         AdminRepository(RetrofitClient.apiService)
     }
 
-    // --- NUEVO: Inicializamos SessionManager ---
     private val sessionManager by lazy {
         SessionManager(applicationContext)
     }
 
-    // --- FACTORIES ---
     private val gameViewModelFactory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(GameViewModel::class.java)) {
@@ -81,12 +79,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // --- CORRECCIÓN EN FACTORY: Pasamos SessionManager ---
     private val authViewModelFactory = object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                // Ahora AuthViewModel recibe (api, sessionManager)
                 return AuthViewModel(RetrofitClient.apiService, sessionManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
@@ -158,12 +154,11 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable("admin_panel") {
-                                // CORRECCIÓN: Se agregan gameViewModel y storeViewModel
                                 AdminPanelScreen(
                                     navController = navController,
                                     adminViewModel = adminViewModel,
-                                    gameViewModel = gameViewModel,   // Agregado
-                                    storeViewModel = storeViewModel, // Agregado
+                                    gameViewModel = gameViewModel, 
+                                    storeViewModel = storeViewModel,
                                     currentUserRole = currentUserRole
                                 )
                             }
@@ -175,10 +170,7 @@ class MainActivity : ComponentActivity() {
                                     onThemeChange = { newTheme -> currentTheme = newTheme },
                                     onLogout = {
                                         authViewModel.logout()
-                                        // CORRECCIÓN LÍNEA 164 APROX:
-                                        // Usamos una limpieza más segura del BackStack
                                         navController.navigate("login") {
-                                            // Limpiamos todo el grafo de navegación
                                             popUpTo(navController.graph.id) { inclusive = true }
                                         }
                                     },
