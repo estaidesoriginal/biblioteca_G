@@ -1,4 +1,4 @@
-* Nombre:Biblioteca_G
+* Nombre: Biblioteca_G
 * Integrantes: Ariel Ben Lulu - Marcelo Novoa
 * Funcionalidades: Biblioteca de Juegos con E-commerce con interfaz personalizable y adaptable segun el rol del usuario
 
