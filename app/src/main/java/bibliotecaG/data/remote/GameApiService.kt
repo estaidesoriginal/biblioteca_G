@@ -6,10 +6,6 @@ import retrofit2.http.*
 
 interface GameApiService {
 
-    // ... (Endpoints de JUEGOS, PRODUCTOS y COMPRAS se mantienen igual) ...
-    // Solo mostramos los cambios en la sección de USUARIOS y TIENDA (Delete)
-
-    // --- SECCIÓN: BIBLIOTECA ---
     @GET("juegos")
     suspend fun getAllGames(): List<Game>
     @GET("juegos/{id}")
@@ -21,14 +17,12 @@ interface GameApiService {
     @DELETE("juegos/{id}")
     suspend fun deleteGame(@Path("id") id: String)
 
-    // --- SECCIÓN: USUARIOS (Actualizado) ---
     @POST("usuarios/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
     @POST("usuarios/registro")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
-    // ¡NUEVOS ENDPOINTS PARA ADMIN!
     @GET("usuarios")
     suspend fun getAllUsers(): List<User>
 
@@ -38,10 +32,9 @@ interface GameApiService {
     @PUT("usuarios/{id}/rol")
     suspend fun updateUserRole(
         @Path("id") id: String,
-        @Body body: Map<String, String> // { "role": "MANAGER" }
+        @Body body: Map<String, String>
     ): User
 
-    // --- SECCIÓN: TIENDA ---
     @GET("productos")
     suspend fun getAllProducts(): List<Product>
     @POST("productos")
@@ -51,11 +44,11 @@ interface GameApiService {
     @DELETE("productos/{id}")
     suspend fun deleteProduct(@Path("id") id: String)
 
-    // --- SECCIÓN: COMPRAS ---
     @POST("compras")
     suspend fun confirmPurchase(@Body items: List<CartItem>, @Query("userId") userId: String): Response<Order>
     @GET("compras")
     suspend fun getAllOrders(): List<Order>
     @PUT("compras/{id}/estado")
     suspend fun updateOrderStatus(@Path("id") id: String, @Body body: Map<String, String>): Response<Order>
+
 }
