@@ -36,7 +36,6 @@ fun StartScreen() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Tarjeta de Bienvenida
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.fillMaxWidth()
@@ -55,19 +54,16 @@ fun StartScreen() {
                 }
             }
 
-            // Sección 1: Biblioteca
             InfoSection(
                 title = "📚 Biblioteca de Juegos",
                 description = "Gestiona la colección de juegos registrados en la app y comparte tu favoritos con todos. Puedes crear nuevos juegos y editar los existentes.\n\n⚠️ Nota importante: Los juegos marcados como 'Protegidos' no pueden ser editados ni eliminados por usuarios estándar."
             )
-
-            // Sección 2: Tienda
+            
             InfoSection(
                 title = "🛍️ Tienda E-commerce",
                 description = "Explora nuestro catálogo de productos relacionados con el gaming. Agrega items a tu carrito y realiza la compra de los productos que mas te gusten."
             )
 
-            // Sección 3: Usuario
             InfoSection(
                 title = "👤 Perfil y Personalización",
                 description = "Inicia sesión para acceder a todas las funciones. Además, puedes personalizar la apariencia de la aplicación eligiendo entre diferentes temas de colores (Clásico, Natura, Cyber) desde tu perfil."
